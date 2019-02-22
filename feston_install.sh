@@ -253,10 +253,10 @@ function important_information() {
  echo -e "Check Status: ${RED}systemctl status $COIN_NAME.service${NC}"
  echo -e "VPS_IP:PORT ${GREEN}$NODEIP:$COIN_PORT${NC}"
  echo -e "MASTERNODE GENKEY is: ${RED}$COINKEY${NC}"
- echo -e "Check ${RED}$COIN_CLI getblockcount${NC} and compare to ${GREEN}$COIN_EXPLORER${NC}."
+ echo -e "Check ${RED}./$COIN_CLI getblockcount${NC} and compare to ${GREEN}$COIN_EXPLORER${NC}."
  echo -e "Check ${GREEN}Collateral${NC} already full confirmed and start masternode."
- echo -e "Use ${RED}$COIN_CLI masternode status${NC} to check your MN Status."
- echo -e "Use ${RED}$COIN_CLI help${NC} for help."
+ echo -e "Use ${RED}./$COIN_CLI masternode status${NC} to check your MN Status."
+ echo -e "Use ${RED}./$COIN_CLI help${NC} for help."
  if [[ -n $SENTINEL_REPO  ]]; then
  echo -e "${RED}Sentinel${NC} is installed in ${RED}/root/sentinel_$COIN_NAME${NC}"
  echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
