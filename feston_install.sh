@@ -1,17 +1,18 @@
 #!/bin/bash
-
-TMP_FOLDER=$(mktemp -d)
 CONFIG_FILE='feston.conf'
 CONFIGFOLDER='/root/.feston'
 COIN_DAEMON='festond'
 COIN_CLI='feston-cli'
-COIN_PATH='/usr/local/bin/'
-COIN_TGZ='https://feston.com/project/feston-cli.zip'
+COIN_PATH='/root/'
+COIN_TGZ='https://github.com/festoncoin1/FestonCoin/releases/download/v1.1.1.0/FTON-1.1.1.0-x86_64-pc-linux-gnu.zip'
+TMP_FOLDER='FTON-1.1.1.0-x86_64-pc-linux-gnu'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
 COIN_NAME='feston'
-COIN_EXPLORER='http://chain.festoncoin.com'
-COIN_PORT=88321
-RPC_PORT=88322
+COIN_EXPLORER='http://explorer.festoncoin.com'
+COIN_CHAIN_LINK='https://cdn.discordapp.com/attachments/531889407305842708/548486072368365568/feston_chain.zip'
+COIN_CHAIN='feston_chain.zip'
+COIN_PORT=13333
+RPC_PORT=13332
 
 NODEIP=$(curl -s4 icanhazip.com)
 
@@ -38,34 +39,25 @@ purgeOldInstallation() {
     echo -e "${GREEN}* Done${NONE}";
 }
 
-function install_sentinel() {
-  echo -e "${GREEN}Installing sentinel.${NC}"
-  apt-get -y install python-virtualenv virtualenv >/dev/null 2>&1
-  git clone $SENTINEL_REPO $CONFIGFOLDER/sentinel >/dev/null 2>&1
-  cd $CONFIGFOLDER/sentinel
-  virtualenv ./venv >/dev/null 2>&1
-  ./venv/bin/pip install -r requirements.txt >/dev/null 2>&1
-  echo  "* * * * * cd $CONFIGFOLDER/sentinel && ./venv/bin/python bin/sentinel.py >> $CONFIGFOLDER/sentinel.log 2>&1" > $CONFIGFOLDER/$COIN_NAME.cron
-  crontab $CONFIGFOLDER/$COIN_NAME.cron
-  rm $CONFIGFOLDER/$COIN_NAME.cron >/dev/null 2>&1
-}
-
 function download_node() {
   echo -e "${GREEN}Downloading and Installing VPS $COIN_NAME Daemon${NC}"
-  cd $TMP_FOLDER >/dev/null 2>&1
   wget -q $COIN_TGZ
-  compile_error
   unzip $COIN_ZIP >/dev/null 2>&1
-  compile_error
-  cd linux
+  cd $TMP_FOLDER >/dev/null 2>&1
   chmod +x $COIN_DAEMON
   chmod +x $COIN_CLI
   cp $COIN_DAEMON $COIN_PATH
-  cp $COIN_DAEMON /root/
   cp $COIN_CLI $COIN_PATH
-  cp $COIN_CLI /root/
   cd ~ >/dev/null 2>&1
   rm -rf $TMP_FOLDER >/dev/null 2>&1
+  clear
+}
+
+function update_chain() {
+  echo -e "${GREEN}Updating $COIN_NAME Chain${NC}"
+  rm $COIN_CHAIN >/dev/null 2>&1
+  wget -q $COIN_CHAIN_LINK
+  unzip $COIN_CHAIN >/dev/null 2>&1
   clear
 }
 
@@ -82,8 +74,8 @@ Group=root
 Type=forking
 #PIDFile=$CONFIGFOLDER/$COIN_NAME.pid
 
-ExecStart=$COIN_PATH$COIN_DAEMON -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER
-ExecStop=-$COIN_PATH$COIN_CLI -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER stop
+ExecStart=$COIN_PATH$COIN_DAEMON -daemon -txindex
+ExecStop=-$COIN_PATH$COIN_CLI stop
 
 Restart=always
 PrivateTmp=true
@@ -110,7 +102,6 @@ EOF
   fi
 }
 
-
 function create_config() {
   mkdir $CONFIGFOLDER >/dev/null 2>&1
   RPCUSER=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w10 | head -n1)
@@ -124,9 +115,8 @@ port=$COIN_PORT
 listen=1
 server=1
 daemon=1
-dns=1
-dnsseed=1
 txindex=1
+maxconnections=64
 EOF
 }
 
@@ -155,7 +145,6 @@ clear
 function update_config() {
   sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/$CONFIG_FILE
   cat << EOF >> $CONFIGFOLDER/$CONFIG_FILE
-maxconnections=256
 bind=$NODEIP
 masternode=1
 masternodeaddr=$NODEIP:$COIN_PORT
@@ -166,7 +155,6 @@ masternodeprivkey=$COINKEY
 EOF
 }
 
-
 function enable_firewall() {
   echo -e "Installing and setting up firewall to allow ingress on port ${GREEN}$COIN_PORT${NC}"
   ufw allow $COIN_PORT/tcp comment "$COIN_NAME MN port" >/dev/null
@@ -175,7 +163,6 @@ function enable_firewall() {
   ufw default allow outgoing >/dev/null 2>&1
   echo "y" | ufw enable >/dev/null 2>&1
 }
-
 
 function get_ip() {
   declare -a NODE_IPS
@@ -200,7 +187,6 @@ function get_ip() {
   fi
 }
 
-
 function compile_error() {
 if [ "$?" -gt "0" ];
  then
@@ -208,7 +194,6 @@ if [ "$?" -gt "0" ];
   exit 1
 fi
 }
-
 
 function checks() {
 if [[ $(lsb_release -d) != *16.04* ]]; then
@@ -297,5 +282,5 @@ purgeOldInstallation
 checks
 prepare_system
 download_node
+update_chain
 setup_node
-
