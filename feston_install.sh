@@ -4,8 +4,7 @@ CONFIGFOLDER='/root/.feston'
 COIN_DAEMON='festond'
 COIN_CLI='feston-cli'
 COIN_PATH='/root/'
-COIN_TGZ='https://github.com/festoncoin1/FestonCoin/releases/download/v1.1.1.1/FTON-Unsigned-v1.1.1.1-aarch64-linux-gnu.zip'
-
+COIN_TGZ='https://github.com/festoncoin1/FestonCoin/releases/download/v1.1.1.1/FTON-Unsigned-v1.1.1.1-x86_64-pc-linux-gnu.zip'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
 COIN_NAME='feston'
 COIN_EXPLORER='http://explorer.festoncoin.com'
